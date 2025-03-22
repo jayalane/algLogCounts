@@ -31,8 +31,8 @@ type Result struct {
 func main() {
 
 	config := Config{
-		MaxHeight:  500,
-		NumWorkers: 8,
+		MaxHeight:  5000,
+		NumWorkers: 12,
 		Profile:    true,             // Enable profiling
 		ProfileOut: "algstats.pprof", // Profile output file
 		IntOnly:    true,
@@ -55,14 +55,6 @@ func main() {
 		defer pprof.StopCPUProfile()
 		fmt.Println("CPU profiling enabled, writing to", config.ProfileOut)
 	}
-
-	config.IntOnly = false
-	config.NoSmall = false
-	doAlgebraicNumbersSequence(config)
-
-	config.IntOnly = true
-	config.NoSmall = false
-	doAlgebraicNumbersSequence(config)
 
 	config.IntOnly = false
 	config.NoSmall = true
@@ -115,12 +107,13 @@ func worker(heightChan <-chan int, wg *sync.WaitGroup, config Config) {
 	// Process heights from the channel until it's closed
 	for height := range heightChan {
 		count, badCount := processHeight(height, config)
-		fmt.Printf("Processed height: %d, count: %d, badCount: %d percent %3.2f 1/log(h) %3.2f\n",
+		fmt.Printf("Processed height: %d, count: %d, badCount: %d percent %3.2f 1/log(h) %3.2f 1/sqrt(log(h)) %3.2f\n",
 			height,
 			count,
 			badCount,
 			100.0*float64(badCount)/float64(count),
-			100.0*1.0/float64(math.Log(float64(height))))
+			100.0*1.0/float64(math.Log(float64(height))),
+			100.0*1.0/float64(math.Sqrt(math.Log(float64(height)))))
 	}
 }
 
@@ -148,8 +141,8 @@ func processHeight(height int, config Config) (count, badCount int) {
 						if val < 0 {
 							val += 1 // Ensure val is in [0,1)
 						}
-						if val < 1/(math.Log(math.Abs(root))) {
-							// fmt.Println("Height", height, "root", root, "val", val, "log", 1/(math.Log(math.Abs(root))))
+						if 1/val > math.Abs(math.Log(math.Abs(root))) {
+							// fmt.Println("Height", height, "root", root, "val", val, "1/val", 1.0/val, "log", math.Abs(math.Log(math.Abs(root))))
 							badCount++
 						}
 					}
