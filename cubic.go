@@ -54,6 +54,7 @@ func workerCubic(heightChan <-chan int, wg *sync.WaitGroup, config Config) {
 	for height := range heightChan {
 		total := height * (2*height + 1) * (2*height + 1) * (2*height + 1)
 		desc := "8h^4"
+
 		if config.IntOnly {
 			desc = "8h^3"
 			total = (2*height + 1) * (2*height + 1) * (2*height + 1)
