@@ -51,11 +51,11 @@ func worker(heightChan <-chan int, wg *sync.WaitGroup, config Config) {
 
 	// Process heights from the channel until it's closed
 	for height := range heightChan {
-		total := height * (2*height + 1) * (2*height + 1)
+		total := height * (2*height + 1) * (2*height + 1) // nolint:mnd
 		desc := "4h^3"
 
 		if config.IntOnly {
-			total = (2*height + 1) * (2*height + 1)
+			total = (2*height + 1) * (2 * height) // nolint:mnd
 			desc = "4h^2"
 		}
 
@@ -88,6 +88,13 @@ func processHeight(height int, config Config) (count, badCount, imaginaryCount, 
 		for b := -height; b <= height; b++ {
 			for c := -height; c <= height; c++ {
 				coeffs := []int{a, b, c}
+
+				if c == 0 {
+					notIrreducibleCount++
+
+					continue
+				}
+
 				if !isIrreducible(coeffs) {
 					notIrreducibleCount++
 

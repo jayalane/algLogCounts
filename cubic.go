@@ -52,7 +52,7 @@ func workerCubic(heightChan <-chan int, wg *sync.WaitGroup, config Config) {
 
 	// Process heights from the channel until it's closed
 	for height := range heightChan {
-		total := height * (2*height + 1) * (2*height + 1) * (2*height + 1)
+		total := height * (2*height + 1) * (2*height + 1) * (2 * height) //nolint:mnd
 		desc := "8h^4"
 
 		if config.IntOnly {
@@ -90,6 +90,12 @@ func processHeightCubic(height int, config Config) (count, badCount, imaginaryCo
 		for b := -height; b <= height; b++ {
 			for c := -height; c <= height; c++ {
 				for d := -height; c <= height; c++ {
+					if d == 0 {
+						notIrreducibleCount++
+
+						continue
+					}
+
 					roots, irreducible := getCubicRoots(a, b, c, d)
 					if !irreducible {
 						notIrreducibleCount++
