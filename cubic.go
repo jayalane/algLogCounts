@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"math"
+	"math/rand"
 	"sort"
 	"sync"
 	"time"
@@ -52,14 +53,16 @@ func workerCubic(heightChan <-chan int, wg *sync.WaitGroup, config Config) {
 	// Process heights from the channel until it's closed
 	for height := range heightChan {
 		total := height * (2*height + 1) * (2*height + 1) * (2*height + 1)
+		desc := "8h^4"
 		if config.IntOnly {
+			desc = "8h^3"
 			total = (2*height + 1) * (2*height + 1) * (2*height + 1)
 		}
 
-		count, badCount, imaginaryCount, smallCount, doubleCount, notIrreducibleCount, twoRootsCount := processHeightCubic(height, config)
+		count, badCount, imaginaryCount, smallCount, doubleCount, notIrreducibleCount, threeRootsCount, twoRootsCount := processHeightCubic(height, config)
 		p := message.NewPrinter(language.English)
 
-		p.Printf("Processed M^(n+1) %d, height: %d, count: %d, badCount: %d smallCount %d doubleCount %d imaginary Count %d twoRootsCount %d !irreducibleCount %d percent %3.2f 1/log(h) %3.2f 1/sqrt(log(h)) %3.2f\n",
+		p.Printf("Processed "+desc+" %d, degree: 3, height: %d, count: %d, badCount: %d smallCount %d doubleCount %d imaginary Count %d twoRootsCount %d threeRootsCount %d !irreducibleCount %d percent %3.2f 1/log(h) %3.2f 1/sqrt(log(h)) %3.2f\n",
 			total,
 			height,
 			count,
@@ -68,6 +71,7 @@ func workerCubic(heightChan <-chan int, wg *sync.WaitGroup, config Config) {
 			doubleCount,
 			imaginaryCount,
 			twoRootsCount,
+			threeRootsCount,
 			notIrreducibleCount,
 			100.0*float64(badCount)/float64(count),
 			100.0*1.0/float64(math.Log(float64(height))),
@@ -75,7 +79,7 @@ func workerCubic(heightChan <-chan int, wg *sync.WaitGroup, config Config) {
 	}
 }
 
-func processHeightCubic(height int, config Config) (count, badCount, imaginaryCount, smallCount, doubleCount, notIrreducibleCount, threeRootsCount int) { //nolint:gocognit,cyclop
+func processHeightCubic(height int, config Config) (count, badCount, imaginaryCount, smallCount, doubleCount, notIrreducibleCount, threeRootsCount, twoRootsCount int) { //nolint:gocognit,cyclop
 	aLimitHigh := 1
 	if !config.IntOnly {
 		aLimitHigh = height
@@ -98,12 +102,16 @@ func processHeightCubic(height int, config Config) (count, badCount, imaginaryCo
 					case len(roots) == 1:
 						imaginaryCount++
 					case len(roots) == 2: // nolint:mnd
-						panic("two real roots for a cubic?")
+						twoRootsCount++
 					default:
 						threeRootsCount++
 					}
 
 					for _, root := range roots {
+						if rand.Intn(1000) == 0 { // nolint:gosec,mnd
+							testRootsCubic(a, b, c, d, root)
+						}
+
 						if config.NoSmall && math.Abs(root) < float64(math.Abs(float64(height)))/2.0 {
 							smallCount++
 
@@ -226,7 +234,7 @@ func getCubicRoots(a, b, c, d int) ([]float64, bool) { //nolint:cyclop
 		roots = uniqueRoots
 	}
 
-	return roots, true
+	return roots, len(roots) < 3 //nolint:mnd
 }
 
 // Helper function for cubic root that handles negative numbers.

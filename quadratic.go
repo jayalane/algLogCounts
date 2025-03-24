@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"math"
+	"math/rand"
 	"sync"
 	"time"
 
@@ -42,7 +43,7 @@ func doQuadraticNumbersSequence(config Config) {
 
 	// Wait for all workers to complete
 	wg.Wait()
-	fmt.Printf("Total execution time: %v\n", time.Since(start))
+	fmt.Printf("Total degree 2 execution time: %v\n", time.Since(start))
 }
 
 func worker(heightChan <-chan int, wg *sync.WaitGroup, config Config) {
@@ -51,14 +52,17 @@ func worker(heightChan <-chan int, wg *sync.WaitGroup, config Config) {
 	// Process heights from the channel until it's closed
 	for height := range heightChan {
 		total := height * (2*height + 1) * (2*height + 1)
+		desc := "4h^3"
+
 		if config.IntOnly {
 			total = (2*height + 1) * (2*height + 1)
+			desc = "4h^2"
 		}
 
 		count, badCount, imaginaryCount, smallCount, doubleCount, notIrreducibleCount, twoRootsCount := processHeight(height, config)
 		p := message.NewPrinter(language.English)
 
-		p.Printf("Processed M^(n+1) %d, height: %d, count: %d, badCount: %d smallCount %d doubleCount %d imaginary Count %d twoRootsCount %d !irreducibleCount %d percent %3.2f 1/log(h) %3.2f 1/sqrt(log(h)) %3.2f\n",
+		p.Printf("Processed "+desc+" %d, degree: 2, height: %d, count: %d, badCount: %d smallCount %d doubleCount %d imaginary Count %d twoRootsCount %d !irreducibleCount %d percent %3.2f 1/log(h) %3.2f 1/sqrt(log(h)) %3.2f\n",
 			total,
 			height,
 			count,
@@ -102,6 +106,10 @@ func processHeight(height int, config Config) (count, badCount, imaginaryCount, 
 				}
 
 				for _, root := range roots {
+					if rand.Intn(1000) == 0 { // nolint:gosec,mnd
+						testRootsCubic(0, a, b, c, root)
+					}
+
 					if config.NoSmall && math.Abs(root) < float64(math.Abs(float64(height)))/2.0 {
 						smallCount++
 
