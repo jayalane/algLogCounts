@@ -15,6 +15,7 @@ import (
 func doCubicNumbersSequence(config Config) {
 	fmt.Println("Cubic Config IntOnly", config.IntOnly)
 	fmt.Println("Cubic Config NoSmall", config.NoSmall)
+	fmt.Println("Cubic Config InvertQ", config.InvertQ)
 
 	start := time.Now()
 
@@ -132,9 +133,16 @@ func processHeightCubic(height int, config Config) (count, badCount, imaginaryCo
 							val++ // Ensure val is in [0,1)
 						}
 
-						if 1/val > math.Abs(math.Log(math.Abs(root))) {
-							// fmt.Println("Height", height, "root", root, "val", val, "1/val", 1.0/val, "log", math.Abs(math.Log(math.Abs(root))))
-							badCount++
+						if config.InvertQ {
+							if 1/val > math.Abs(math.Log(math.Abs(1/root))) {
+								// fmt.Println("Height", height, "root", root, "val", val, "1/val", 1.0/val, "log", math.Abs(math.Log(math.Abs(root))))
+								badCount++
+							}
+						} else {
+							if 1/val > math.Abs(math.Log(math.Abs(root))) {
+								// fmt.Println("Height", height, "root", root, "val", val, "1/val", 1.0/val, "log", math.Abs(math.Log(math.Abs(root))))
+								badCount++
+							}
 						}
 					}
 				}

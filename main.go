@@ -14,6 +14,7 @@ type Config struct {
 	ProfileOut string // Path to save the profile
 	IntOnly    bool   // algebraic ints or algebraic numbers
 	NoSmall    bool   // only for |q| > Height/2
+	InvertQ    bool
 }
 
 // Result holds the statistics for a specific height.
@@ -33,6 +34,7 @@ func main() {
 		ProfileOut: "algstats.pprof", // Profile output file
 		IntOnly:    true,
 		NoSmall:    true,
+		InvertQ:    true,
 	}
 
 	// Start CPU profiling if enabled
@@ -54,13 +56,12 @@ func main() {
 		fmt.Println("CPU profiling enabled, writing to", config.ProfileOut)
 	}
 
-	config.IntOnly = true
-	config.NoSmall = true
-	doQuadraticNumbersSequence(config)
-	doCubicNumbersSequence(config)
-
-	config.IntOnly = false
-	config.NoSmall = true
-	doQuadraticNumbersSequence(config)
-	doCubicNumbersSequence(config)
+	for config.IntOnly = false; !config.IntOnly; config.IntOnly = !config.IntOnly {
+		for config.NoSmall = false; !config.NoSmall; config.NoSmall = !config.NoSmall {
+			for config.InvertQ = false; !config.InvertQ; config.InvertQ = !config.InvertQ {
+				doQuadraticNumbersSequence(config)
+				doCubicNumbersSequence(config)
+			}
+		}
+	}
 }

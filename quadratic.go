@@ -12,8 +12,9 @@ import (
 )
 
 func doQuadraticNumbersSequence(config Config) {
-	fmt.Println("Config IntOnly", config.IntOnly)
-	fmt.Println("Config NoSmall", config.NoSmall)
+	fmt.Println("Quadratic Config IntOnly", config.IntOnly)
+	fmt.Println("Quadratic Config NoSmall", config.NoSmall)
+	fmt.Println("Quadratic Config InvertQ", config.InvertQ)
 
 	start := time.Now()
 
@@ -130,9 +131,16 @@ func processHeight(height int, config Config) (count, badCount, imaginaryCount, 
 						val++ // Ensure val is in [0,1)
 					}
 
-					if 1/val > math.Abs(math.Log(math.Abs(root))) {
-						// fmt.Println("Height", height, "root", root, "val", val, "1/val", 1.0/val, "log", math.Abs(math.Log(math.Abs(root))))
-						badCount++
+					if config.InvertQ {
+						if 1/val > math.Abs(math.Log(math.Abs(1/root))) {
+							// fmt.Println("Height", height, "root", root, "val", val, "1/val", 1.0/val, "log", math.Abs(math.Log(math.Abs(root))))
+							badCount++
+						}
+					} else {
+						if 1/val > math.Abs(math.Log(math.Abs(root))) {
+							// fmt.Println("Height", height, "root", root, "val", val, "1/val", 1.0/val, "log", math.Abs(math.Log(math.Abs(root))))
+							badCount++
+						}
 					}
 				}
 			}
